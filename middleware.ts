@@ -1,44 +1,29 @@
 import NextAuth from "next-auth";
 import type { NextAuthConfig } from "next-auth";
 
-export const authConfig: NextAuthConfig = {
+// Absolute minimal config for the Edge runtime
+const authConfig: NextAuthConfig = {
+  providers: [],
   pages: {
     signIn: "/admin/login",
-  },
-  session: {
-    strategy: "jwt",
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const isAdminPage = nextUrl.pathname.startsWith("/admin");
       
-      if (isAdminPage) {
-        if (isLoggedIn) return true;
-        return false;
+      if (isAdminPage && !isLoggedIn) {
+        return Response.redirect(new URL("/admin/login", nextUrl));
       }
       return true;
     },
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user && token.id) {
-        session.user.id = token.id as string;
-      }
-      return session;
-    },
   },
-  providers: [],
 };
 
-export default NextAuth(authConfig).auth;
+const { auth } = NextAuth(authConfig);
+
+export default auth;
 
 export const config = {
-  matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/admin/:path*"], // Let's limit the protection to ONLY /admin routes for now
 };
