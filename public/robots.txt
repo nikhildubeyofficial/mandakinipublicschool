@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://mandakinipublicschool.edu.in/sitemap.xml
